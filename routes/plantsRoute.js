@@ -2,12 +2,19 @@ const express = require("express")
 const router = express.Router()
 
 const Plant = require("../models/plants.js")
+const jsPDF = require("jspdf");
+
 
 //Enabling to get All routes using the blank blade.
 router.get("/", async (req, res) => {
 
         const plants = await Plant.find()
+    if(plants == null || undefined){
+        console.log("No plantID Given ")
+    }else{
         res.json(plants)
+    }
+
 
 })
 
@@ -18,19 +25,55 @@ router.get("/:id", getPlants, (req, res) => {
 
 router.post("/", async (req, res) => {
     const createPlant = new Plant({
-        name: req.body.name,
-        plantId: req.body.plantId
+        name: req.body.name ,
+        plantId: req.body.plantId,
+        plantHumidity: req.body.plantHumidity,
+
+        tempWarning: req.body.tempWarning,
+        drySoil: req.body.drySoil
     })
 
+
     try{
-        const newPlant = await createPlant.save()
+        //todo Create the correct logic for the coming param
+          if(newPlant.plantHumidity > 20 ){
+            return console.log("To moist")
+        } if(newPlant.plantHumidity < 20 ){
+            return console.log("To dry")
+        }
+          if(newPlant.drySoil === true){
+              console.log("Dude water the plant before Shipping")
+          }
+        else{
+            (newPlant.plantId !== null)
+              const doc = new jsPDF();
+              newPlant.forEach(function(newPlant, i){
+                  doc.text(20, 10 + (i * 10),
+                      "This is the Plant Certificate All seems fine"
+                  + "Plant Name: " + newPlant.name +
+                      "Plant ID: " + newPlant.plantId+
+                  "plantHumidity: " + newPlant.plantHumidity+
+                  "tempWarning: Perfect Temp"+
+                      "drySoil: Perfect Soil");
+              });
+              doc.save('Test.pdf');
+          }
+
+        let newPlant;
+        newPlant = await createPlant.save();
+
+
         res.status(201).json(newPlant)
     }catch(err){
         //User bad Data === Error 400 (DB === 500;) )
         res.status(400).json({message: err.message})
 
     }
+
 })
+
+
+
 //Patch will only take some specific information und update these. If we did put instead it would update all fields.
 router.patch("/:id",getPlants, async (req, res) => {
     if (req.body.name != null) {

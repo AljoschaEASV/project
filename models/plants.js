@@ -14,11 +14,9 @@ const plantsSchema = new mongoose.Schema({
     },
     tempWarning: {
         type: Boolean
-
     },
     drySoil: {
         type: Boolean
-
     }
 
 })
